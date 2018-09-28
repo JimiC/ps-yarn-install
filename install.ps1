@@ -79,7 +79,7 @@ Function YarnInstallMSI {
         exit 1
     }
 
-    [System.Version]$version = cmd /c $programFilesDir\Yarn\bin\yarn --version 2>> install.log
+    $version = cmd /c $programFilesDir\Yarn\bin\yarn --version 2>> install.log
 
     If (!$version) {
         Write-Host "> Yarn was installed, but doesn't seem to be working :(." -ForegroundColor Red
@@ -96,8 +96,8 @@ Function YarnInstall {
 
     If (Test-Path -Path "$programFilesDir\Yarn" -PathType Container) {
         $latestUrl
-        [System.Version]$specifiedVersion
-        [System.Version]$latestVersion
+        $specifiedVersion
+        $latestVersion
         $versionType
 
         If ($1 -eq "--nightly") {
@@ -124,23 +124,23 @@ Function YarnInstall {
         }
 
         try {
-            [System.Version]$yarnVersion = yarn -v
-            [System.Version]$yarnAltVersion = yarn --version
+            $yarnVersion = yarn -v
+            $yarnAltVersion = yarn --version
         }
         catch {
             Write-Error $_.Exception.Message
             exit 1
         }
 
-        If ($specifiedVersion -eq $yarnVersion -or $specifiedVersion -eq $yarnAltVersion) {
+        If ([System.Version]$specifiedVersion -eq [System.Version]$yarnVersion -or [System.Version]$specifiedVersion -eq [System.Version]$yarnAltVersion) {
             Write-Host "> Yarn is already at the $specifiedVersion version." -ForegroundColor Green
             exit 0
         }
-        ElseIf ($specifiedVersion -gt $latestVersion -and $versionType -ne "nightly") {
+        ElseIf ([System.Version]$specifiedVersion -gt [System.Version]$latestVersion -and $versionType -ne "nightly") {
             Write-Host "> $specifiedVersion has not been released yet. Check back later." -ForegroundColor Yellow
             exit 0
         }
-        ElseIf ($specifiedVersion -lt $yarnVersion -or $specifiedVersion -lt $yarnAltVersion) {
+        ElseIf ([System.Version]$specifiedVersion -lt [System.Version]$yarnVersion -or [System.Version]$specifiedVersion -lt [System.Version]$yarnAltVersion) {
             Write-Host "> A newer Yarn version ($yarnAltVersion) is already installed." -ForegroundColor Yellow
             exit 0
         }
@@ -160,7 +160,7 @@ $myWindowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($myW
 $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
 
 If ($myWindowsPrincipal.IsInRole($adminRole)) {
-    $programFilesDir = (${env:ProgramFiles(x86)}, ${env:ProgramFiles} -ne $null)[0]
+    $programFilesDir = (${env:ProgramFiles(x86)}, $null -ne ${env:ProgramFiles})[0]
     $authCodeSign = "AF764E1EA56C762617BDC757C8B0F3780A0CF5F9"
 
     YarnInstall $args[0] $args[1]
