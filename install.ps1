@@ -48,8 +48,13 @@ Function YarnGetMSI {
 Function YarnVerifyIntegrity {
     Write-Host "> Verifying integrity..." -ForegroundColor Cyan
     $thumbprint = (Get-AuthenticodeSignature $env:temp\yarn.msi).SignerCertificate.Thumbprint
+    
+    $index = 0
+    If ([System.Version]$specifiedVersion -lt [System.Version]"1.22.0") {
+        $index++
+    }
 
-    If ($thumbprint -eq $authCodeSign) {
+    If ($thumbprint -eq $authCodeSigns[$index]) {
         Write-Host "> AuthCode signature looks good." -ForegroundColor Green
     }
     Else {
@@ -62,7 +67,7 @@ Function YarnVerifyOrQuit {
     Param([String]$1)
 
     $reply = Read-Host -Prompt "$1 [y/N] "
-    Write-Output
+    Write-Output ""
 
     If (!($reply -match "^[Yy]$")) {
         Write-Host "> Aborting" -ForegroundColor Red
@@ -161,7 +166,9 @@ $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
 
 If ($myWindowsPrincipal.IsInRole($adminRole)) {
     $programFilesDir = (${env:ProgramFiles(x86)}, $null -ne ${env:ProgramFiles})[0]
-    $authCodeSign = "AF764E1EA56C762617BDC757C8B0F3780A0CF5F9"
+    [string[]]$authCodeSigns = 
+        "795D68C6828BD3D21B36EB15F7A31EE5873EBE8F",
+        "AF764E1EA56C762617BDC757C8B0F3780A0CF5F9"
 
     YarnInstall $args[0] $args[1]
 }
